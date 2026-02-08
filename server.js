@@ -84,19 +84,29 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    if (msg.type === "join") {
-      const roomId = String(msg.room || "default");
-      const id = String(msg.id || Math.random().toString(16).slice(2));
+   if (msg.type === "join") {
+  const roomId = String(msg.room || "default");
+  const id = String(msg.id || Math.random().toString(16).slice(2));
 
-      ws._roomId = roomId;
-      ws._id = id;
+  ws._roomId = roomId;
+  ws._id = id;
 
-      const room = getRoom(roomId);
-      room.players.set(ws, { id, power: 0 });
+  const room = getRoom(roomId);
 
-      broadcast(roomId, { type: "info", text: `${id} joined` });
-      return;
-    }
+  // 进房间时分配角色：先来 A，后到 B
+  const role = room.players.size === 0 ? "A" : "B";
+
+  room.players.set(ws, { id, power: 0, role });
+
+  // 单独告诉这个客户端：你是 A 还是 B
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "role", role }));
+  }
+
+  broadcast(roomId, { type: "info", text: `${id} joined as ${role}` });
+  return;
+}
+
 
     if (msg.type === "power") {
       const roomId = ws._roomId;
@@ -135,3 +145,4 @@ wss.on("connection", (ws) => {
 });
 
 console.log(`WebSocket server running on :${PORT}`);
+
