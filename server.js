@@ -83,8 +83,7 @@ wss.on("connection", (ws) => {
     } catch {
       return;
     }
-
-   if (msg.type === "join") {
+if (msg.type === "join") {
   const roomId = String(msg.room || "default");
   const id = String(msg.id || Math.random().toString(16).slice(2));
 
@@ -93,7 +92,7 @@ wss.on("connection", (ws) => {
 
   const room = getRoom(roomId);
 
-  // 进房间时分配角色：先来 A，后到 B
+  // 先来的是 A（左边），后来的 B（右边）
   const role = room.players.size === 0 ? "A" : "B";
 
   room.players.set(ws, { id, power: 0, role });
@@ -106,6 +105,7 @@ wss.on("connection", (ws) => {
   broadcast(roomId, { type: "info", text: `${id} joined as ${role}` });
   return;
 }
+
 
 
     if (msg.type === "power") {
@@ -145,4 +145,5 @@ wss.on("connection", (ws) => {
 });
 
 console.log(`WebSocket server running on :${PORT}`);
+
 
