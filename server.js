@@ -48,10 +48,19 @@ function tickRoom(roomId) {
     const A = playersArr[0];
     const B = playersArr[1];
 
-    let force = (A.power || 0) - (B.power || 0);
-    const centerPull = (0.5 - room.p) * FRICTION;
+let force = (A.power || 0) - (B.power || 0);
 
-    room.p += (force * SPEED + centerPull) * dt;
+// 基础回中
+let centerPull = (0.5 - room.p) * FRICTION;
+
+// ✅ 如果两边都几乎没用力（都回正），就更强拉回中线
+const idle = (Math.abs(A.power || 0) < 0.03) && (Math.abs(B.power || 0) < 0.03);
+if (idle) {
+  centerPull = (0.5 - room.p) * 0.60; // 这个数越大，回中越快
+}
+
+room.p += (force * SPEED + centerPull) * dt;
+
 
     if (room.p < 0) room.p = 0;
     if (room.p > 1) room.p = 1;
@@ -145,5 +154,6 @@ if (msg.type === "join") {
 });
 
 console.log(`WebSocket server running on :${PORT}`);
+
 
 
